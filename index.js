@@ -10,7 +10,7 @@ app.use(cors())
 // Otetaan json-parseri käyttöön
 app.use(express.json())
 
-
+app.use(express.static('dist'))
 // Määritellään sovellukselle kaksi routea:
 
 // 1) Määrittelee tapahtumankäsittelijän, 
@@ -28,6 +28,7 @@ app.get('/', (request,response) => {
 })
 
 app.get('/api/notes', (request, response) => {
+    console.log('fetching all...')
     Note.find({}).then(n => {
         response.json(n)
     })
@@ -42,17 +43,10 @@ app.get('/api/notes', (request, response) => {
 // api/notes/JOTAIN, jossa JOTAIN on mielivaltainen merkkijono
 app.get('/api/notes/:id', (request,response) => {
 // Polun parametrin id arvoon päästään käsiksi pyynnön tiedot kertovan olion request kautta
-    
-    // Täytyy olla Number(...), muuten ei voi verrata id:tä
-    const id = Number(request.params.id)
-    console.log(id)
-    const note = notes.find(note => note.id === id)
-
-    if (note) {
-        response.json(note)
-    } else {
-        response.status(404).end()
-    }
+    Note.findById(request.params.id)
+        .then(note => {
+            response.json(note)
+        })
 })
 
 // Resurssin poisto:
@@ -91,16 +85,13 @@ app.post('/api/notes', (request, response) => {
 // Jos content kentällä on arvo, luodaan muistiinpano
 // syötteen perusteella. Jos kenttä important puuttuu
 // sille asetetaan oletusarvo false
-    const note = {
+    const note = new Note({
         content: body.content,
-        important: body.important || false,
-        id: generateId()
-    }
-
-    notes = notes.concat(note)
-    // console.log(note)
-    // console.log(request.headers)
-    response.json(note)
+        important: body.important || false
+    })
+    note.save().then(savedNote => {
+        response.json(savedNote)
+    })
 })
 
 // Palvelimen kuunneltava portti
