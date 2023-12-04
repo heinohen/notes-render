@@ -1,7 +1,8 @@
 
 // otetaan käyttöön express, joka on tällä kertaa funktio,
 // jota kutsumalla luodaan muuttujaan app sijoitettava Express-sovellusta vastaava olio
-
+require('dotenv').config()
+const Note = require('./models/note')
 const express = require('express')
 const app = express()
 const cors = require('cors')
@@ -9,25 +10,6 @@ app.use(cors())
 // Otetaan json-parseri käyttöön
 app.use(express.json())
 
-app.use(express.static('dist'))
-
-let notes = [
-    {
-    id: 1,
-    content: "HTML is easy",
-    important: true
-    },     
-    {
-    id: 2,
-    content: "Browser can execute only JavaScript",
-    important: false
-    },
-    {
-    id: 3,
-    content: "GET and POST are the most important methods of HTTP protocol",
-    important: true
-    }
-]
 
 // Määritellään sovellukselle kaksi routea:
 
@@ -46,7 +28,9 @@ app.get('/', (request,response) => {
 })
 
 app.get('/api/notes', (request, response) => {
-    response.json(notes)
+    Note.find({}).then(n => {
+        response.json(n)
+    })
 })
 // Yksittäisen resurssin haku:
 // tehdään route,
