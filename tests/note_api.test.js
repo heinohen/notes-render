@@ -7,10 +7,7 @@ const Note = require('../models/note')
 
 beforeEach(async () => {
   await Note.deleteMany({})
-  let noteObject = new Note(helper.initialNotes[0])
-  await noteObject.save()
-  noteObject = new Note(helper.initialNotes[1])
-  await noteObject.save()
+  await Note.insertMany(helper.initialNotes)
 })
 
 
@@ -74,6 +71,37 @@ describe('API tests', () => {
 
     expect(notesAtEnd).toHaveLength(helper.initialNotes.length)
   })
+
+  test('a specific note can be viewed', async () => {
+    const notesAtStart = await helper.notesInDb()
+
+    const noteToView = notesAtStart[0]
+
+    const resultNote = await api
+      .get(`/api/notes/${noteToView.id}`)
+      .expect(200)
+      .expect('Content-Type',/application\/json/)
+
+    expect(resultNote.body).toEqual(noteToView)
+  })
+
+  test('a note can be deleted', async () => {
+    const notesAtStart = await helper.notesInDb()
+
+    const noteToDelete = notesAtStart[0]
+
+    await api
+      .delete(`/api/notes/${noteToDelete.id}`)
+      .expect(204)
+
+    const notesAtEnd = await helper.notesInDb()
+
+    expect(notesAtEnd).toHaveLength(
+      helper.initialNotes.length - 1
+    )
+  })
+
+
 
 })
 
